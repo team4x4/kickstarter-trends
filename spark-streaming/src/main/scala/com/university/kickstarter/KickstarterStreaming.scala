@@ -44,7 +44,7 @@ object KickstarterStreaming {
 
     projectsStream.foreachRDD(rdd => {
       DataConverter.saveData(filterByState(rdd, Failed)
-        .sortBy(r => (r.count, r.country), ascending = true)
+        .sortBy(r => (-r.count, r.country), ascending = true)
         .take(n), windowLength)
     })
   }

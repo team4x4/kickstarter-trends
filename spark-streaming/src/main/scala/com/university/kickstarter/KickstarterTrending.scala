@@ -1,11 +1,15 @@
 package com.university.kickstarter
 
+import java.io.{File, PrintWriter}
+
 import java.nio.charset.StandardCharsets
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.pubsub.{PubsubUtils, SparkGCPCredentials}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+
+import scala.io.Source
 
 object KickstarterTrending {
   def createStream(projectId: String, ssc : StreamingContext, windowLength: String,
@@ -20,7 +24,7 @@ object KickstarterTrending {
         ssc,
         projectId,
         None,
-        "project-sub",
+        "project_sub",
         SparkGCPCredentials.builder.build(),
         StorageLevel.MEMORY_AND_DISK_SER_2)
       .map(message => new String(message.getData(), StandardCharsets.UTF_8))
@@ -34,6 +38,7 @@ object KickstarterTrending {
 
     val sparkConf = new SparkConf().setAppName(KickstarterTrending.getClass.getName)
     sparkConf.setIfMissing("spark.master", "local[*]")
+
 
     val ssc = new StreamingContext(sparkConf, Seconds(slidingInterval.toInt))
 
@@ -60,11 +65,16 @@ object KickstarterTrending {
         """.stripMargin)
       System.exit(1)
     }
-
-    val Seq(projectId, windowLength, slidingInterval, totalRunningTime, checkpointDirectory) = args.toSeq
+//    val outputPath = s"gs://kickstarter411/output_data"
+//    val writer = new PrintWriter(new File(outputPath))
+//    writer.write("This is simple text file.")
+//    writer.close()
+    val Seq(checkpointDirectory, projectId, windowLength, slidingInterval, totalRunningTime) = args.toSeq
     val ssc = StreamingContext.getOrCreate(checkpointDirectory,
       () => createContext(projectId, windowLength, slidingInterval, checkpointDirectory))
-
+//    ssc.sparkContext.hadoopConfiguration.set("fs.gs.impl", com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem);
+//    ssc.sparkContext.hadoopConfiguration.set("fs.AbstractFileSystem.gs.impl",
+//      "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS");
     ssc.start()
     if (totalRunningTime.toInt == 0) {
       ssc.awaitTermination()
