@@ -21,7 +21,7 @@ object KickstarterTrending {
         ssc,
         projectId,
         None,
-        "project_sub",
+        "project-sub",
         SparkGCPCredentials.builder.build(),
         StorageLevel.MEMORY_AND_DISK_SER_2)
       .map(message => new String(message.getData(), StandardCharsets.UTF_8))
@@ -35,7 +35,6 @@ object KickstarterTrending {
 
     val sparkConf = new SparkConf().setAppName(KickstarterTrending.getClass.getName)
     sparkConf.setIfMissing("spark.master", "local[*]")
-
 
     val ssc = new StreamingContext(sparkConf, Seconds(slidingInterval.toInt))
 

@@ -6,7 +6,7 @@ import org.apache.spark.streaming.dstream.DStream
 
 object KickstarterStreaming {
 
-  private var Successful = "successful"
+  private var Successful = "success"
   private var Failed = "failed"
 
   case class Popularity(country: String, count: Int)
