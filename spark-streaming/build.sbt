@@ -14,5 +14,10 @@ libraryDependencies ++= Seq(
   "com.google.cloud" % "google-cloud-storage" % "1.70.0",
 //BQ samples as of 27feb2019 use hadoop2 but hadoop3 seems to work fine and are recommended elsewhere
   "com.google.cloud.bigdataoss" % "bigquery-connector" % "hadoop3-0.13.16" % "provided",
-  "com.google.cloud.bigdataoss" % "gcs-connector" % "hadoop3-1.9.16" % "provided"
+
+  "com.google.cloud.bigdataoss" % "gcs-connector" % "hadoop2-1.9.17" 
+    exclude("javax.jms", "jms") 
+    exclude("com.sun.jdmk", "jmxtools") 
+    exclude("com.sun.jmx", "jmxri")
+  //"com.sksamuel.avro4s" %% "avro4s-core" % "3.0.9"
 )
