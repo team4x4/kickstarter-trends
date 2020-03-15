@@ -9,6 +9,7 @@ val sparkVersion = "2.4.5"
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion,
   "org.apache.spark" %% "spark-streaming" % sparkVersion,
+  "org.apache.spark" % "spark-sql_2.12" % sparkVersion,
   "org.apache.bahir" %% "spark-streaming-pubsub" % "2.4.0",
   "com.google.guava" % "guava" % "27.1-jre",
   "com.google.cloud" % "google-cloud-storage" % "1.70.0",
@@ -20,5 +21,4 @@ libraryDependencies ++= Seq(
     exclude("javax.jms", "jms") 
     exclude("com.sun.jdmk", "jmxtools") 
     exclude("com.sun.jmx", "jmxri")
-  //"com.sksamuel.avro4s" %% "avro4s-core" % "3.0.9"
 )

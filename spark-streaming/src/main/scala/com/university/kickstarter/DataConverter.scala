@@ -1,18 +1,21 @@
 package com.university.kickstarter
 
-import com.university.kickstarter.KickstarterStreaming.Popularity
+import com.university.kickstarter.KickstarterStreaming.{KickstarterProject, Popularity}
 import org.apache.spark.rdd.RDD
+import java.util.UUID
+
 
 object DataConverter {
+
   import org.apache.spark.sql.SparkSession
   val spark: SparkSession = SparkSession.builder()
     .appName("spark-bigquery-demo")
     .getOrCreate()
   val bucket = s"kickstarter411"
   spark.conf.set("temporaryGcsBucket", bucket)
+  import spark.implicits._
 
 
-  // TODO save data to database
   def saveData(dataSuc: Array[Popularity], countSuc: Int,
                dataFailed: Array[Popularity], countFailed: Int, time: String,
                name: String, windowLength: Int): Unit = {
@@ -57,11 +60,9 @@ object DataConverter {
       .save()
   }
 
-  // TODO save data to store
-  def saveData(data: RDD[String]): Unit = {
 
-    val outputPath = s"gs://kickstarter411/output_data"
-    val filePath = s"src\\main\\resources\\output-${data.name}.txt"
-    data.saveAsTextFile(outputPath)
+  def saveDataToGS(data: RDD[KickstarterProject]): Unit = {
+    val outputPath = s"gs://test-kickstarter//output//data-${UUID.randomUUID()}"
+    data.toDF().write.parquet(outputPath)
   }
 }

@@ -1,6 +1,7 @@
 package com.university.kickstarter
 
 import java.nio.charset.StandardCharsets
+
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.dstream.DStream
