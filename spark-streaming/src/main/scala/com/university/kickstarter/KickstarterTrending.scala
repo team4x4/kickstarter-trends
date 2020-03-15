@@ -61,16 +61,11 @@ object KickstarterTrending {
         """.stripMargin)
       System.exit(1)
     }
-//    val outputPath = s"gs://kickstarter411/output_data"
-//    val writer = new PrintWriter(new File(outputPath))
-//    writer.write("This is simple text file.")
-//    writer.close()
+
     val Seq(checkpointDirectory, projectId, windowLength, slidingInterval, totalRunningTime) = args.toSeq
     val ssc = StreamingContext.getOrCreate(checkpointDirectory,
       () => createContext(projectId, windowLength, slidingInterval, checkpointDirectory))
-//    ssc.sparkContext.hadoopConfiguration.set("fs.gs.impl", com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem);
-//    ssc.sparkContext.hadoopConfiguration.set("fs.AbstractFileSystem.gs.impl",
-//      "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS");
+
     ssc.start()
     if (totalRunningTime.toInt == 0) {
       ssc.awaitTermination()

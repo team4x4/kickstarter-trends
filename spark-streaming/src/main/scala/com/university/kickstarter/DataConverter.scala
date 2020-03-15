@@ -1,19 +1,7 @@
 package com.university.kickstarter
 
-import java.io.{File, PrintWriter}
-import java.time.LocalDateTime
-
-import com.google.cloud.hadoop.gcsio.GoogleCloudStorage
 import com.university.kickstarter.KickstarterStreaming.Popularity
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.apache.spark.{SparkConf, SparkContext}
-import com.google.cloud.spark.bigquery._
-import org.apache.spark
-import org.apache.spark.sql.SparkSession
-import java.time.format.DateTimeFormatter
-
-import scala.io.Source
 
 object DataConverter {
   import org.apache.spark.sql.SparkSession
@@ -35,8 +23,6 @@ object DataConverter {
     //      .load()
     //      .cache().schema
     //val df = wordsDF.sqlContext.createDataFrame(data).union(wordsDF)
-    //val schema = StructType(Array(StructField("country", StringType), StructField("success", IntegerType)))
-    //val time = DateTimeFormatter.ofPattern("yyyy-MM-ddTHH:mm:ss").format(LocalDateTime.now)
 
     print(time)
     val df = spark.sqlContext.createDataFrame(dataFailed)
