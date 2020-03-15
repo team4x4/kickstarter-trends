@@ -1,27 +1,74 @@
 package com.university.kickstarter
 
 import java.io.{File, PrintWriter}
+import java.time.LocalDateTime
 
 import com.google.cloud.hadoop.gcsio.GoogleCloudStorage
 import com.university.kickstarter.KickstarterStreaming.Popularity
 import org.apache.spark.rdd.RDD
-
+import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
+import org.apache.spark.{SparkConf, SparkContext}
+import com.google.cloud.spark.bigquery._
+import org.apache.spark
+import org.apache.spark.sql.SparkSession
+import java.time.format.DateTimeFormatter
 
 import scala.io.Source
 
 object DataConverter {
+  import org.apache.spark.sql.SparkSession
+  val spark: SparkSession = SparkSession.builder()
+    .appName("spark-bigquery-demo")
+    .getOrCreate()
+  val bucket = s"kickstarter411"
+  spark.conf.set("temporaryGcsBucket", bucket)
+
 
   // TODO save data to database
-  def saveData(data: Array[Popularity], windowLength: Int): Unit = {
-    val filePath = "src\\main\\resources\\output.txt"
-    val writer = new PrintWriter(new File(filePath))
-    for (element <- data) {
-      writer.write(s"${element.country} -- ${element.count}\n")
-    }
-    writer.close()
-    Source.fromFile(filePath).foreach {
-      print
-    }
+  def saveData(dataSuc: Array[Popularity], countSuc: Int,
+               dataFailed: Array[Popularity], countFailed: Int, time: String,
+               name: String, windowLength: Int): Unit = {
+
+    // Load data in from BigQuery.
+    //    val wordsDF = spark.read.format("bigquery")
+    //      .option("table","my-spark-project-270614:kikstarter_projects.projects")
+    //      .load()
+    //      .cache().schema
+    //val df = wordsDF.sqlContext.createDataFrame(data).union(wordsDF)
+    //val schema = StructType(Array(StructField("country", StringType), StructField("success", IntegerType)))
+    //val time = DateTimeFormatter.ofPattern("yyyy-MM-ddTHH:mm:ss").format(LocalDateTime.now)
+
+    print(time)
+    val df = spark.sqlContext.createDataFrame(dataFailed)
+      .union(spark.sqlContext.createDataFrame(List(Popularity("total", countFailed, time))))
+
+    df.createOrReplaceTempView("tempTable2")
+    val df2 = spark.sqlContext.createDataFrame(dataSuc)
+      .union(spark.sqlContext.createDataFrame(List(Popularity("total", countSuc, time))))
+
+    df2.createOrReplaceTempView("tempTable")
+
+    val wordCountDF = spark.sql(
+      "SELECT country, SUM(count) AS success, time_stamp " +
+        "FROM tempTable group by country, time_stamp")
+      .createOrReplaceTempView("tmp")
+
+    val wordCountDF2 = spark.sql(
+      "SELECT country, SUM(count) AS failed, time_stamp " +
+        "FROM tempTable2 group by country, time_stamp")
+      .createOrReplaceTempView("tmp1")
+    val sqlQuery = "SELECT COALESCE(t1.country, t2.country) as country, success, failed, " +
+      "COALESCE(t1.time_stamp, t2.time_stamp) as time_stamp" +
+      " FROM tmp as t1 FULL OUTER JOIN tmp1 as t2 " +
+      "ON t1.country = t2.country"
+    print(sqlQuery)
+    val wordCountDF3 = spark.sql(sqlQuery)
+
+    // Saving the data to BigQuery.
+    wordCountDF3.write.format("bigquery")
+      .option("table","my-spark-project-270614:q1.q3")
+      .mode(org.apache.spark.sql.SaveMode.Append)
+      .save()
   }
 
   // TODO save data to store
