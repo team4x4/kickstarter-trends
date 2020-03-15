@@ -1,7 +1,5 @@
 package com.university.kickstarter
 
-import java.io.{File, PrintWriter}
-
 import java.nio.charset.StandardCharsets
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
@@ -9,7 +7,6 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.pubsub.{PubsubUtils, SparkGCPCredentials}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
-import scala.io.Source
 
 object KickstarterTrending {
   def createStream(projectId: String, ssc : StreamingContext, windowLength: String,
