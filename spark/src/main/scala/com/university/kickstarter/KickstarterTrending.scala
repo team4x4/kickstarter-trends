@@ -13,13 +13,13 @@ object KickstarterTrending {
   def createStream(projectId: String, ssc : StreamingContext, windowLength: String,
                    slidingInterval: String, checkpointDirectory: String)
   : DStream[String] = {
-
+    val subscription = "project-sub"
     val stream: DStream[String] = PubsubUtils
       .createStream(
         ssc,
         projectId,
         None,
-        "project-sub",
+        subscription,
         SparkGCPCredentials.builder.build(),
         StorageLevel.MEMORY_AND_DISK_SER_2)
       .map(message => new String(message.getData(), StandardCharsets.UTF_8))
@@ -66,8 +66,8 @@ object KickstarterTrending {
       () => createContext(projectId, windowLength, slidingInterval, checkpointDirectory))
     ssc.sparkContext.hadoopConfiguration
       .set("fs.file.impl", classOf[com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem].getName)
-    ssc.sparkContext.hadoopConfiguration.set("fs.AbstractFileSystem.gs.impl",
-      classOf[com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS].getName)
+    ssc.sparkContext.hadoopConfiguration
+      .set("fs.AbstractFileSystem.gs.impl", classOf[com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS].getName)
     ssc.start()
     if (totalRunningTime.toInt == 0) {
       ssc.awaitTermination()

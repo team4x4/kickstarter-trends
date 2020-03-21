@@ -56,7 +56,7 @@ object KickstarterStreaming {
       // Текущее время
       val formatter = DateTimeFormatter.RFC_1123_DATE_TIME
       val time = ZonedDateTime.now(ZoneOffset.ofHours(4)).format(formatter)
-      //val time = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss").format(LocalDateTime.now)
+      
       // Успешные проекты
       val successfulProjects = rdd.filter(p => p != null)
         .filter(project => Successful.equals(project.state))
