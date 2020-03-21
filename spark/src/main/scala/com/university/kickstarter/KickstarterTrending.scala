@@ -14,9 +14,6 @@ object KickstarterTrending {
                    slidingInterval: String, checkpointDirectory: String)
   : DStream[String] = {
 
-    val batchInterval = Seconds(slidingInterval.toInt)
-    val streamCheckpointInterval = batchInterval
-
     val stream: DStream[String] = PubsubUtils
       .createStream(
         ssc,
@@ -39,9 +36,9 @@ object KickstarterTrending {
 
     val ssc = new StreamingContext(sparkConf, Seconds(slidingInterval.toInt))
 
-    //val yarnTags = sparkConf.get("spark.yarn.tags")
-    //val jobId = yarnTags.split(",").filter(_.startsWith("dataproc_job")).head
-    //ssc.checkpoint(checkpointDirectory + '/' + jobId)
+    val yarnTags = sparkConf.get("spark.yarn.tags")
+    val jobId = yarnTags.split(",").filter(_.startsWith("dataproc_job")).head
+    ssc.checkpoint(checkpointDirectory + '/' + jobId)
 
     val projectsStream: DStream[String] =
       createStream(projectId, ssc, windowLength, slidingInterval, checkpointDirectory)
@@ -49,7 +46,8 @@ object KickstarterTrending {
     KickstarterStreaming.processTrendingProjects(projectsStream,
       windowLength.toInt,
       slidingInterval.toInt,
-      10)
+      10,
+      projectId)
     ssc
   }
 
