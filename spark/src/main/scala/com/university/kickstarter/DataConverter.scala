@@ -36,20 +36,10 @@ object DataConverter {
 
     df2.createOrReplaceTempView("tempTable")
 
-    spark.sql(
-      "SELECT country, count success, time_stamp " +
-        "FROM tempTable")
-      .createOrReplaceTempView("tmp")
-
-    spark.sql(
-      "SELECT country, count AS failed, time_stamp " +
-        "FROM tempTable2")
-      .createOrReplaceTempView("tmp1")
-
     // Соединяем таблицы
-    val sqlQuery = "SELECT COALESCE(t1.country, t2.country) as country, success, failed, " +
+    val sqlQuery = "SELECT COALESCE(t1.country, t2.country) as country, t1.count as success, t2.count as failed, " +
       "COALESCE(t1.time_stamp, t2.time_stamp) as time_stamp" +
-      " FROM tmp as t1 FULL OUTER JOIN tmp1 as t2 " +
+      " FROM tempTable as t1 FULL OUTER JOIN tempTable2 as t2 " +
       "ON t1.country = t2.country"
     print(sqlQuery)
     val wordCountDF3 = spark.sql(sqlQuery)
