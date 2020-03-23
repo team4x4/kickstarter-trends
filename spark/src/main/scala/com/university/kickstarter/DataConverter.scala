@@ -56,4 +56,9 @@ object DataConverter {
     val outputPath = s"gs://kickstarter411/output_data//data-${UUID.randomUUID()}"
     data.toDF().write.parquet(outputPath)
   }
+
+  def readParquet(filePath: String) = {
+    val df = spark.sqlContext.read.parquet(filePath)
+    df.show()
+  }
 }
