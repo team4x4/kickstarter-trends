@@ -11,7 +11,7 @@ object DataConverter {
   import org.apache.spark.sql.SparkSession
 
   val spark: SparkSession = SparkSession.builder()
-    .appName("spark-bigquery-demo")
+    .appName("spark")
     .getOrCreate()
   val bucket = s"kickstarter411"
   spark.conf.set("temporaryGcsBucket", bucket)
@@ -41,23 +41,22 @@ object DataConverter {
       "COALESCE(t1.time_stamp, t2.time_stamp) as time_stamp" +
       " FROM tempTable as t1 FULL OUTER JOIN tempTable2 as t2 " +
       "ON t1.country = t2.country"
-    print(sqlQuery)
     val wordCountDF3 = spark.sql(sqlQuery)
 
     // Сохраняем метрики в BigQuery.
     wordCountDF3.write.format("com.google.cloud.spark.bigquery")
       .option("table", projectId + ":dataset_kicks.kicks_metrics")
-      .mode(org.apache.spark.sql.SaveMode.Append)
+      .mode(org.apache.spark.sql.SaveMode.Overwrite)
       .save()
   }
 
   // Сохранение в хранилице в формате parquet
   def saveDataToGS(data: RDD[KickstarterProject]): Unit = {
-    val outputPath = s"gs://kickstarter411/output_data//data-${UUID.randomUUID()}"
+    val outputPath = s"gs://kickstarter411/output_data/data-${UUID.randomUUID()}"
     data.toDF().write.parquet(outputPath)
   }
 
-  def readParquet(filePath: String) = {
+  def readParquet(filePath: String): Unit = {
     val df = spark.sqlContext.read.parquet(filePath)
     df.show()
   }

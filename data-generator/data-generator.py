@@ -23,6 +23,7 @@ FILE_NAME = sys.argv[4]
 
 try:
     FILE = open(FILE_NAME)
+    FILE.readline()
 except IOError:
     print("File not accessible")
     sys.exit()
@@ -42,6 +43,7 @@ def get_project():
     project_info = FILE.readline()
     if "" == project_info:
         FILE.seek(0)
+        FILE.readline()
     print(project_info, time.time())
     publisher.publish(topic_url, project_info.encode('utf-8'))
     num_projects += 1
@@ -51,6 +53,7 @@ now = start_time = time.time()
 while now < start_time + TOTAL_TIME * ONE_MINUTE:
     get_project()
     now = time.time()
+
 
 elapsed_time = time.time() - start_time
 print("Elapsed time: %s minutes" % (elapsed_time / 60))
