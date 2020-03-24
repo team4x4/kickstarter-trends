@@ -4,7 +4,8 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import com.university.kickstarter.KickstarterStreaming.{KickstarterProject, Popularity}
-import org.apache.spark.rdd.RDD
+
+import org.apache.spark.sql.DataFrame
 
 
 // Сохранение данных
@@ -53,21 +54,21 @@ object DataConverter {
   }
 
   // Сохранение в хранилице в формате parquet
-  def saveDataToGS(data: RDD[KickstarterProject], time: ZonedDateTime): Unit = {
+  def saveDataToGS(data: DataFrame, time: ZonedDateTime): Unit = {
     val formatter = DateTimeFormatter.ISO_LOCAL_TIME
-    val outputPath1 = s"gs://kickstarter411/output_data/data/${time.toLocalDate}/${time.format(formatter)}"
-    data.toDF().write.parquet(outputPath1)
+    val outputPath = s"gs://kickstarter411/output_data/data/${time.toLocalDate}/${time.format(formatter)}"
+    data.write.parquet(outputPath)
   }
 
-  def readParquet(filePath: String): Unit = {
+  def readParquet(filePath: String) = {
     val df = spark.sqlContext.read.parquet(filePath)
     df.show()
   }
 
 
   // Сохранение данных в базу
-  def saveDataDB(dataSuc: RDD[Popularity], countSuc: Int,
-               dataFailed: RDD[Popularity], countFailed: Int, time: String,
+  def saveDataDB(dataSuc: DataFrame, countSuc: Int,
+               dataFailed: DataFrame, countFailed: Int, time: String,
                name: String, windowLength: Int, projectId : String): Unit = {
 
     // Load data in from BigQuery.
@@ -77,14 +78,14 @@ object DataConverter {
           .cache()
 
     // Создаем dataframe из неусппешных проектов и их общего кол-ва
-    val df = spark.sqlContext.createDataFrame(dataFailed)
+    val df = dataFailed
       .union(spark.sqlContext.createDataFrame(List(Popularity("total", countFailed, time))))
 
     // Создаем временную таблицу для хранения этих данных
     df.createOrReplaceTempView("tempTable2")
 
     // Аналогично для успешных проектов
-    val df2 = spark.sqlContext.createDataFrame(dataSuc)
+    val df2 = dataSuc
       .union(spark.sqlContext.createDataFrame(List(Popularity("total", countSuc, time))))
 
     df2.createOrReplaceTempView("tempTable")
@@ -130,5 +131,4 @@ object DataConverter {
       .mode(org.apache.spark.sql.SaveMode.Overwrite)
       .save()
   }
-
 }
