@@ -51,12 +51,13 @@ object KickstarterStreaming {
 
     // Для каждого RDD считаем метрики
     projectsStream.foreachRDD(rdd => {
-      DataConverter.saveDataToGS(rdd) // Сохраняем в хранилице
-
       // Текущее время
       val formatter = DateTimeFormatter.RFC_1123_DATE_TIME
-      val time = ZonedDateTime.now(ZoneOffset.ofHours(4)).format(formatter)
-      
+
+      val timeZ = ZonedDateTime.now(ZoneOffset.ofHours(4))
+      val time = timeZ.format(formatter)
+      DataConverter.saveDataToGS(rdd, timeZ) // Сохраняем в хранилице
+
       // Успешные проекты
       val successfulProjects = rdd.filter(p => p != null)
         .filter(project => Successful.equals(project.state))
@@ -82,9 +83,11 @@ object KickstarterStreaming {
       val countFailed = failedProjects.map(_.count).sum().toInt
 
       // Сохраняем в BigQuery топ-10 и общее кол-во
-      DataConverter.saveData(successfulProjects.take(n), countSuc,
-        failedProjects.take(n), countFailed, time, rdd.name, windowLength, projectId)
+//      DataConverter.saveData(successfulProjects.take(n), countSuc,
+//        failedProjects.take(n), countFailed, time, rdd.name, windowLength, projectId)
 
+      DataConverter.saveDataDB(successfulProjects, countSuc,
+        failedProjects, countFailed, time, rdd.name, windowLength, projectId)
     })
   }
 }
