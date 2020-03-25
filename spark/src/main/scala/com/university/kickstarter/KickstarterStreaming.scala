@@ -17,7 +17,7 @@ object KickstarterStreaming {
   import org.apache.spark.sql.functions._
 
   // Для метрик
-  case class Popularity(country: String, count: Int, time_stamp: String)
+  case class Popularity(country: String, count: Long)
 
   // Для сохранения на диск
   case class KickstarterProject(id: String, name: String, category: String,
@@ -52,7 +52,7 @@ object KickstarterStreaming {
       .window(Seconds(windowLength), Seconds(slidingInterval))
 
     // Для каждого RDD считаем метрики
-    input.foreachRDD(rdd => {
+    projectsStream.foreachRDD(rdd => {
       val df = rdd.toDF()
 
       // Текущее время
@@ -72,7 +72,7 @@ object KickstarterStreaming {
 
       // Кол-во успешных проектов
       val countSuc = successfulProjects
-        .agg(sum("count")).first.asInstanceOf[Int]
+        .agg(sum("count")).first.getLong(0)
 
       // Неуспешные проекты
       val failedProjects = df.filter(p => p != null)
@@ -82,7 +82,7 @@ object KickstarterStreaming {
         .orderBy(desc("count"))
 
       // Кол-во неуспешных проектов
-      val countFailed = failedProjects.agg(sum("count")).first.asInstanceOf[Int]
+      val countFailed = failedProjects.agg(sum("count")).first.getLong(0)
 
       DataConverter.saveDataDB(successfulProjects, countSuc,
         failedProjects, countFailed, time, rdd.name, windowLength, projectId)
