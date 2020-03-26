@@ -127,5 +127,16 @@ object DataConverter {
       .option("table", projectId + ":dataset_kicks.kicks_metricsF")
       .mode(org.apache.spark.sql.SaveMode.Overwrite)
       .save()
+
+    // Отдельные таблицы для топ-10 по успешным и неуспешным
+    // Данные записываются с учетом кол-ва проектов по убыванию
+    metrics1.write.format("com.google.cloud.spark.bigquery")
+      .option("table", projectId + ":dataset_kicks.success_top")
+      .mode(org.apache.spark.sql.SaveMode.Overwrite)
+      .save()
+    metrics2.write.format("com.google.cloud.spark.bigquery")
+      .option("table", projectId + ":dataset_kicks.failed_top")
+      .mode(org.apache.spark.sql.SaveMode.Overwrite)
+      .save()
   }
 }
